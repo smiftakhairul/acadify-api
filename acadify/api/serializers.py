@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.conf import settings
+from urllib.parse import urljoin, quote
 from ..models import *
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,14 +27,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.SerializerMethodField()
-    
     class Meta:
         model = User
         fields = ['first_name', 'designation', 'phone', 'avatar', 'address', 'website', 'github', 'twitter', 'facebook', 'vk', 'about']
-        
-    def create(self, validated_data):
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        return super().update(instance, validated_data)

@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from .api.utils import UploadUtils
 
 class User(AbstractUser):
     ROLES = (('admin', 'Admin'), ('faculty', 'Faculty'), ('student', 'Student'))
@@ -9,7 +10,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=100, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     designation = models.CharField(max_length=255, null=True, blank=True)
-    avatar = models.CharField(max_length=255, null=True, blank=True)
+    avatar = models.ImageField(max_length=255, upload_to=UploadUtils.avatar, null=True, blank=True)
     about = models.TextField(null=True, blank=True)
     website = models.URLField(null=True, blank=True)
     github = models.URLField(null=True, blank=True)

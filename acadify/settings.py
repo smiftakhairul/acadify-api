@@ -14,8 +14,12 @@ SECRET_KEY = 'django-insecure-d^tjzn!=pw&#_srl71m2n3d!qr12_0pyoqaal&1aw47k!5qz-1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# ADMIN ENABLE
+ADMIN_ENABLED = False
+
 ALLOWED_HOSTS = ['*']
 
+DEFAULT_FILE_STORAGE = 'acadify.storage.OverwriteStorage'
 
 # Application definition
 
@@ -96,24 +100,25 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    # },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    # },
 ]
 
 REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'acadify.api.utils.custom_exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # 'rest_framework.authentication.TokenAuthentication',
-        'acadify.authentication.BearerAuthentication',
+        'acadify.api.authentication.BearerAuthentication',
     ],
 }
 

@@ -1,6 +1,13 @@
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.views import exception_handler
 
+def custom_exception_handler(exc, context):
+    if isinstance(exc, AuthenticationFailed):
+        return ApiUtils.error_response(message='Invalid token.', code=status.HTTP_401_UNAUTHORIZED)
+    
+    return None
 class ApiUtils:
     @staticmethod
     def success_response(data=None, message=None, code=status.HTTP_200_OK):
@@ -31,3 +38,10 @@ class ApiUtils:
     @staticmethod
     def handle_exception(exception):
         return ApiUtils.error_response('Something went wrong. Please try again.', status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UploadUtils:
+    @staticmethod
+    def avatar(instance, filename):
+        name, extension = filename.split('.')
+        new_filename = f"{instance.username}.{extension}"
+        return f"avatars/{new_filename}"
