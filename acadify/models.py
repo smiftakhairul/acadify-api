@@ -70,7 +70,7 @@ class Attachment(models.Model):
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     type = models.CharField(max_length=255)
-    image = models.CharField(max_length=255, null=True, blank=True)
+    image = models.ImageField(max_length=255, upload_to=UploadUtils.post, null=True, blank=True)
     title = models.CharField(max_length=255)
     tags = models.CharField(max_length=255, null=True, blank=True)
     content = models.TextField()
