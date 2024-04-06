@@ -17,7 +17,7 @@ def register(request):
             user = UserSerializer(user).data
             return ApiUtils.success_response(data={'user': user}, message='User registered successfully.')
         
-        return ApiUtils.error_response(message=serializer.errors)
+        return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
     except:
         return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -29,7 +29,7 @@ def login(request):
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
         
-        if user.role == request.data.get('role'):
+        if not user.is_superuser and user.role in ['faculty', 'student']:
             user = UserSerializer(user).data
             return ApiUtils.success_response(data={'user': user, 'token': token.key}, message='User authenticated successfully.')
         
@@ -67,7 +67,7 @@ def update_user(request):
             user = UserSerializer(request.user).data
             return ApiUtils.success_response(data={'user': user}, message='User updated successfully.')
         
-        return ApiUtils.error_response(message=serializer.errors)
+        return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
     except:
         return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -101,7 +101,7 @@ def create_post(request):
             serializer.save()
             return ApiUtils.success_response(data={'post': serializer.data}, message='Post created successfully.')
         
-        return ApiUtils.error_response(message=serializer.errors)
+        return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
     except:
         return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -118,7 +118,7 @@ def update_post(request, pk):
             serializer.save()
             return ApiUtils.success_response(data={'post': serializer.data}, message='Post updated successfully.')
         
-        return ApiUtils.error_response(message=serializer.errors)
+        return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
     except:
         return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

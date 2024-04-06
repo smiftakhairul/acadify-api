@@ -83,6 +83,15 @@ class Post(models.Model):
             models.Index(fields=['type']),
             models.Index(fields=['type', 'user']),
         ]
+    
+    def likes(self):
+        return Like.objects.filter(model_type=ContentType.objects.get_for_model(self), model_id=self.id)
+    
+    def comments(self):
+        return Comment.objects.filter(model_type=ContentType.objects.get_for_model(self), model_id=self.id)
+    
+    def attachments(self):
+        return Attachment.objects.filter(model_type=ContentType.objects.get_for_model(self), model_id=self.id)
 
 class Course(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
