@@ -69,7 +69,10 @@ class Attachment(models.Model):
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    type = models.CharField(max_length=255)
+    model_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    model_id = models.PositiveIntegerField()
+    model_object = GenericForeignKey('model_type', 'model_id')
+    type = models.CharField(max_length=255, default='general')
     image = models.ImageField(max_length=255, upload_to=UploadUtils.post, null=True, blank=True)
     title = models.CharField(max_length=255)
     tags = models.CharField(max_length=255, null=True, blank=True)
@@ -80,8 +83,11 @@ class Post(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['type']),
-            models.Index(fields=['type', 'user']),
+            models.Index(fields=['model_type']),
+            models.Index(fields=['model_type', 'model_id']),
+            models.Index(fields=['model_type', 'model_id', 'type']),
+            models.Index(fields=['model_type', 'model_id', 'user']),
+            models.Index(fields=['model_type', 'model_id', 'type', 'user']),
         ]
     
     def likes(self):

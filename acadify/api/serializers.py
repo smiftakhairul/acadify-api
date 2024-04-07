@@ -58,9 +58,30 @@ class PostSerializer(serializers.ModelSerializer):
     likes = LikeSerializer(many=True, read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
     attachments = AttachmentSerializer(many=True, read_only=True)
+    model_object = serializers.SerializerMethodField()
     
     class Meta:
         model = Post
+        fields = '__all__'
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['user'] = UserSerializer(instance.user).data
+        return representation
+    
+    def get_model_object(self, instance):
+        try:
+            if instance.model_type == ContentType.objects.get_for_model(Course):
+                model_object = Course.objects.get(pk=instance.model_id)
+                serializer = CourseSerializer(model_object)
+                return serializer.data
+            return None
+        except:
+            return None
+
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
         fields = '__all__'
     
     def to_representation(self, instance):
