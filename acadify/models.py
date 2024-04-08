@@ -91,13 +91,13 @@ class Post(models.Model):
         ]
     
     def likes(self):
-        return Like.objects.filter(model_type=ContentType.objects.get_for_model(self), model_id=self.id)
+        return Like.objects.filter(model_type=ContentType.objects.get_for_model(self), model_id=self.id).order_by('-id')
     
     def comments(self):
-        return Comment.objects.filter(model_type=ContentType.objects.get_for_model(self), model_id=self.id)
+        return Comment.objects.filter(model_type=ContentType.objects.get_for_model(self), model_id=self.id).order_by('-id')
     
     def attachments(self):
-        return Attachment.objects.filter(model_type=ContentType.objects.get_for_model(self), model_id=self.id)
+        return Attachment.objects.filter(model_type=ContentType.objects.get_for_model(self), model_id=self.id).order_by('-id')
 
 class Course(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

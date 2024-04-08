@@ -154,3 +154,30 @@ def delete_post(request, pk):
         return ApiUtils.success_response(message='Post deleted successfully.')
     except:
         return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def like(request):
+    try:
+        if not request.data.get('model') or not request.data.get('model_id'):
+            return ApiUtils.error_response(message='Model information is required.')
+        
+        model = ContentType.objects.get(model=request.data.get('model'))
+        like_exists = Like.objects.filter(model_type=model.pk, model_id=request.data.get('model_id'), user=request.user).exists()
+        
+        if not like_exists:
+            data = request.data.copy()
+            data['model_type'] = model.pk
+            
+            serializer = LikeSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return ApiUtils.success_response(data={'like': serializer.data}, message='Liked successfully.')
+            
+            return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
+        else:
+            existing_like = Like.objects.get(model_type=model.pk, model_id=request.data.get('model_id'), user=request.user)
+            existing_like.delete()
+            return ApiUtils.success_response(data=None, message='Disliked successfully.')
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
