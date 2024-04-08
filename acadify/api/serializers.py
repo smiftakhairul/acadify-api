@@ -1,17 +1,26 @@
 from rest_framework import serializers
-from django.conf import settings
-from urllib.parse import urljoin, quote
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from ..models import *
 
-class UserSerializer(serializers.ModelSerializer):
+class BaseSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['created_at'] = naturaltime(instance.created_at)
+        representation['updated_at'] = naturaltime(instance.updated_at)
+        return representation
+
     class Meta:
+        abstract = True
+
+class UserSerializer(BaseSerializer):
+    class Meta(BaseSerializer.Meta):
         model = User
         exclude = ['password', 'is_superuser', 'last_name', 'is_staff']
 
-class RegisterSerializer(serializers.ModelSerializer):
+class RegisterSerializer(BaseSerializer):
     password = serializers.CharField(write_only=True)
 
-    class Meta:
+    class Meta(BaseSerializer.Meta):
         model = User
         fields = ['username', 'password', 'email', 'first_name', 'role']
 
@@ -19,13 +28,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
+class UserProfileSerializer(BaseSerializer):
+    class Meta(BaseSerializer.Meta):
         model = User
         fields = ['first_name', 'designation', 'phone', 'avatar', 'address', 'website', 'github', 'twitter', 'facebook', 'vk', 'about']
 
-class LikeSerializer(serializers.ModelSerializer):
-    class Meta:
+class LikeSerializer(BaseSerializer):
+    class Meta(BaseSerializer.Meta):
         model = Like
         fields = '__all__'
     
@@ -34,8 +43,8 @@ class LikeSerializer(serializers.ModelSerializer):
         representation['user'] = UserSerializer(instance.user).data
         return representation
 
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
+class CommentSerializer(BaseSerializer):
+    class Meta(BaseSerializer.Meta):
         model = Comment
         fields = '__all__'
     
@@ -44,8 +53,8 @@ class CommentSerializer(serializers.ModelSerializer):
         representation['user'] = UserSerializer(instance.user).data
         return representation
 
-class AttachmentSerializer(serializers.ModelSerializer):
-    class Meta:
+class AttachmentSerializer(BaseSerializer):
+    class Meta(BaseSerializer.Meta):
         model = Attachment
         fields = '__all__'
     
@@ -54,13 +63,13 @@ class AttachmentSerializer(serializers.ModelSerializer):
         representation['user'] = UserSerializer(instance.user).data
         return representation
 
-class PostSerializer(serializers.ModelSerializer):
+class PostSerializer(BaseSerializer):
     likes = LikeSerializer(many=True, read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
     attachments = AttachmentSerializer(many=True, read_only=True)
     model_object = serializers.SerializerMethodField()
     
-    class Meta:
+    class Meta(BaseSerializer.Meta):
         model = Post
         fields = '__all__'
     
@@ -79,8 +88,8 @@ class PostSerializer(serializers.ModelSerializer):
         except:
             return None
 
-class CourseSerializer(serializers.ModelSerializer):
-    class Meta:
+class CourseSerializer(BaseSerializer):
+    class Meta(BaseSerializer.Meta):
         model = Course
         fields = '__all__'
     

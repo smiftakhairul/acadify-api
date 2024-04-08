@@ -73,6 +73,18 @@ def update_user(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def show_user(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+        if user.is_superuser:
+            return ApiUtils.error_response(message='User not found.')
+        user = UserSerializer(user).data
+        return ApiUtils.success_response(data={'user': user}, message='User retrieved successfully.')
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def list_posts(request):
     try:
         filters = {key: value for key, value in request.GET.items() if key not in ['page_size', 'page', 'model']}
@@ -163,7 +175,7 @@ def like(request):
             return ApiUtils.error_response(message='Model information is required.')
         
         model = ContentType.objects.get(model=request.data.get('model'))
-        like_exists = Like.objects.filter(model_type=model.pk, model_id=request.data.get('model_id'), user=request.user).exists()
+        like_exists = Like.objects.filter(model_type=model.pk, model_id=request.data.get('model_id'), user=request.data.get('user')).exists()
         
         if not like_exists:
             data = request.data.copy()
@@ -176,8 +188,41 @@ def like(request):
             
             return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
         else:
-            existing_like = Like.objects.get(model_type=model.pk, model_id=request.data.get('model_id'), user=request.user)
+            existing_like = Like.objects.get(model_type=model.pk, model_id=request.data.get('model_id'), user=request.data.get('user'))
             existing_like.delete()
             return ApiUtils.success_response(data=None, message='Disliked successfully.')
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_comment(request):
+    try:
+        if not request.data.get('model') or not request.data.get('model_id'):
+            return ApiUtils.error_response(message='Model information is required.')
+        
+        model = ContentType.objects.get(model=request.data.get('model'))
+        data = request.data.copy()
+        data['model_type'] = model.pk
+        
+        serializer = CommentSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return ApiUtils.success_response(data={'comment': serializer.data}, message='Comment created successfully.')
+        
+        return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_comment(request, pk):
+    try:
+        comment = Comment.objects.get(pk=pk)
+        if comment.user != request.user:
+            return ApiUtils.error_response(message='Not authorized.', code=status.HTTP_403_FORBIDDEN)
+        
+        comment.delete()
+        return ApiUtils.success_response(message='Comment deleted successfully.')
     except:
         return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
