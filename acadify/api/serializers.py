@@ -88,7 +88,20 @@ class PostSerializer(BaseSerializer):
         except:
             return None
 
+class EnrollmentSerializer(BaseSerializer):
+    class Meta(BaseSerializer.Meta):
+        model = Enrollment
+        fields = '__all__'
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['user'] = UserSerializer(instance.user).data
+        representation['course'] = CourseSerializer(instance.course).data
+        return representation
+
 class CourseSerializer(BaseSerializer):
+    enrollments = EnrollmentSerializer(many=True, read_only=True)
+    
     class Meta(BaseSerializer.Meta):
         model = Course
         fields = '__all__'

@@ -21,4 +21,10 @@ urlpatterns = [
     # comment
     path('comments/create/', views.create_comment, name='comments.create'),
     path('comments/<int:pk>/delete/', views.delete_comment, name='comments.delete'),
+    # course
+    path('courses/', views.list_courses, name='courses.list'),
+    path('courses/create/', views.create_course, name='courses.create'),
+    path('courses/<int:pk>/update/', views.update_course, name='courses.update'),
+    path('courses/<int:pk>/', views.show_course, name='courses.show'),
+    path('courses/<int:pk>/delete/', views.delete_course, name='courses.delete'),
 ]

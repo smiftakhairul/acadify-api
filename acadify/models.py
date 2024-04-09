@@ -103,7 +103,7 @@ class Course(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
-    logo = models.CharField(max_length=255, null=True, blank=True)
+    logo = models.ImageField(max_length=255, upload_to=UploadUtils.course, null=True, blank=True)
     description = models.TextField()
     capacity = models.PositiveIntegerField(default=1)
     tags = models.CharField(max_length=255, null=True, blank=True)
@@ -120,6 +120,9 @@ class Course(models.Model):
         indexes = [
             models.Index(fields=['user']),
         ]
+    
+    def enrollments(self):
+        return self.enrollment_set.order_by('-id')
 
 class Enrollment(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)

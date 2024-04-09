@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.pagination import PageNumberPagination
 from math import ceil
+import random, string
 
 def custom_exception_handler(exc, context):
     if isinstance(exc, AuthenticationFailed):
@@ -77,3 +78,13 @@ class UploadUtils:
         name, extension = filename.split('.')
         new_filename = f"{int(timezone.now().timestamp())}.{extension}"
         return f"posts/{new_filename}"
+    
+    @staticmethod
+    def course(instance, filename):
+        name, extension = filename.split('.')
+        new_filename = f"{int(timezone.now().timestamp())}.{extension}"
+        return f"courses/{new_filename}"
+
+def generate_token(size=20):
+    characters = string.ascii_lowercase + string.digits + '!@#$%^&*()_+=-'
+    return ''.join(random.choice(characters) for _ in range(size))

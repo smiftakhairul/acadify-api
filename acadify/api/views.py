@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from ..models import *
 from .serializers import *
-from .utils import ApiUtils, CustomPagination
+from .utils import ApiUtils, CustomPagination, generate_token
 
 @api_view(['POST'])
 def register(request):
@@ -224,5 +224,89 @@ def delete_comment(request, pk):
         
         comment.delete()
         return ApiUtils.success_response(message='Comment deleted successfully.')
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_courses(request):
+    try:
+        filters = {key: value for key, value in request.GET.items() if key not in ['page_size', 'page']}
+        courses = Course.objects.filter(**filters).order_by('-id')
+        
+        if request.GET.get('page_size') and request.GET.get('page'):
+            pagination = CustomPagination()
+            paginated_courses = pagination.paginate_queryset(courses, request)
+            serializer = CourseSerializer(paginated_courses, many=True)
+            courses = pagination.get_paginated_response(serializer.data)
+        else:
+            serializer = CourseSerializer(courses, many=True)
+            courses = serializer.data
+        
+        return ApiUtils.success_response(data={'courses': courses}, message='Courses retrieved successfully.')
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_course(request):
+    try:
+        while True:
+            token = generate_token()
+            if not Course.objects.filter(token=token).exists():
+                break
+        
+        data = request.data.copy()
+        data['token'] = token
+        
+        serializer = CourseSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return ApiUtils.success_response(data={'course': serializer.data}, message='Course created successfully.')
+        
+        return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_course(request, pk):
+    try:
+        course = Course.objects.get(pk=pk)
+        if course.user != request.user:
+            return ApiUtils.error_response(message='Not authorized.', code=status.HTTP_403_FORBIDDEN)
+        
+        data = request.data.copy()
+        data.pop('token', None)
+        
+        serializer = CourseSerializer(course, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return ApiUtils.success_response(data={'course': serializer.data}, message='Course updated successfully.')
+        
+        return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def show_course(request, pk):
+    try:
+        course = Course.objects.get(pk=pk)
+        serializer = CourseSerializer(course)
+        return ApiUtils.success_response(data={'course': serializer.data}, message='Course retrieved successfully.')
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_course(request, pk):
+    try:
+        course = Course.objects.get(pk=pk)
+        if course.user != request.user:
+            return ApiUtils.error_response(message='Not authorized.', code=status.HTTP_403_FORBIDDEN)
+        
+        course.delete()
+        return ApiUtils.success_response(message='Course deleted successfully.')
     except:
         return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
