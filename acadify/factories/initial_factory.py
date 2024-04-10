@@ -11,8 +11,15 @@ fake = Faker()
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
+        
+    @classmethod
+    def generate_unique_username(cls):
+        while True:
+            username = fake.user_name()
+            if not cls._meta.model.objects.filter(username=username).exists():
+                return username
 
-    username = factory.LazyAttribute(lambda _: fake.user_name())
+    username = factory.LazyAttribute(lambda _: UserFactory.generate_unique_username())
     first_name = factory.LazyAttribute(lambda _: fake.first_name() + ' ' + fake.last_name())
     # last_name = factory.LazyAttribute(lambda _: fake.last_name())
     email = factory.LazyAttribute(lambda o: f'{o.username}@acadify.dev')
@@ -57,22 +64,21 @@ class PostFactory(factory.django.DjangoModelFactory):
 class CourseFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Course
+    
+    @classmethod
+    def generate_unique_token(cls):
+        while True:
+            token = generate_token()
+            if not cls._meta.model.objects.filter(token=token).exists():
+                return token
 
     user = factory.SubFactory(FacultyFactory)
     name = factory.LazyAttribute(lambda _: fake.sentence(nb_words=3))
     description = factory.LazyAttribute(lambda _: fake.text())
     tags = factory.LazyAttribute(lambda _: ','.join(fake.words(nb=random.randint(1, 3))))
     capacity = factory.LazyFunction(lambda: random.choice([5, 10, 15]))
+    token = factory.LazyAttribute(lambda _: CourseFactory.generate_unique_token())
     status = True
-    
-    @classmethod
-    def generate_unique_token(cls, instance):
-        while True:
-            token = generate_token()
-            if not cls._meta.model.objects.filter(token=token).exists():
-                return token
-    
-    token = factory.LazyAttribute(lambda obj: CourseFactory.generate_unique_token(obj))
 
 class EnrollmentFactory(factory.django.DjangoModelFactory):
     class Meta:
