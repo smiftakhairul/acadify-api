@@ -50,16 +50,18 @@ class PostFactory(factory.django.DjangoModelFactory):
     model_id = 0
     type = 'general'
     
-    # @factory.post_generation
-    # def set_model_type_and_id(self, create, extracted, **kwargs):
-    #     if extracted:
-    #         self.model_type = extracted
-    #         if extracted == 'Post':
-    #             self.model_id = 0
-    #             self.type = 'general'
-    #         elif extracted == 'Course':
-    #             self.model_id = Course.objects.order_by('?').first().id
-    #             self.type = 'general'
+    @factory.post_generation
+    def create_likes_and_comments(self, create, extracted, **kwargs):
+        if create:
+            num_likes = random.randint(10, 90)
+            num_comments = random.randint(1, 5)
+            users = list(User.objects.all())
+            for _ in range(num_likes):
+                user = random.choice(users)
+                if not Like.objects.filter(user=user, model_type=self.model_type, model_id=self.id).exists():
+                    Like.objects.create(user=user, model_type=self.model_type, model_id=self.id)
+            for _ in range(num_comments):
+                Comment.objects.create(user=random.choice(users), model_type=self.model_type, model_id=self.id, content=fake.paragraph())
 
 class CourseFactory(factory.django.DjangoModelFactory):
     class Meta:
