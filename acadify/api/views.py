@@ -232,7 +232,15 @@ def delete_comment(request, pk):
 def list_courses(request):
     try:
         filters = {key: value for key, value in request.GET.items() if key not in ['page_size', 'page']}
-        courses = Course.objects.filter(**filters).order_by('-id')
+        
+        user = User.objects.get(pk=request.GET.get('user'))
+        if user.role == 'faculty':
+            courses = Course.objects.filter(**filters).order_by('-id')
+        elif user.role == 'student':
+            filters_copy = filters.copy()
+            filters_copy.pop('user', None)
+            enrollments = user.enrollment_set.values_list('course', flat=True)
+            courses = Course.objects.filter(id__in=enrollments, **filters_copy).order_by('-id')
         
         if request.GET.get('page_size') and request.GET.get('page'):
             pagination = CustomPagination()
@@ -317,6 +325,9 @@ def create_enrollment(request):
     try:
         user = User.objects.get(pk=request.data.get('user'), role='student')
         course = Course.objects.get(token=request.data.get('token'))
+        
+        if Enrollment.objects.filter(course=course).count() >= course.capacity:
+            return ApiUtils.error_response(message='Course capacity is already full.')
         
         if Enrollment.objects.filter(course=course, user=user).exists():
             return ApiUtils.error_response(message='Enrollment already exists.')
