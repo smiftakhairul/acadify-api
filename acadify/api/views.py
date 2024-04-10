@@ -310,3 +310,26 @@ def delete_course(request, pk):
         return ApiUtils.success_response(message='Course deleted successfully.')
     except:
         return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_enrollment(request):
+    try:
+        user = User.objects.get(pk=request.data.get('user'), role='student')
+        course = Course.objects.get(token=request.data.get('token'))
+        
+        if Enrollment.objects.filter(course=course, user=user).exists():
+            return ApiUtils.error_response(message='Enrollment already exists.')
+        
+        data = request.data.copy()
+        data.pop('token', True)
+        data['course'] = course.pk
+        
+        serializer = EnrollmentSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return ApiUtils.success_response(data={'enrollment': serializer.data}, message='Enrollment created successfully.')
+        
+        return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)

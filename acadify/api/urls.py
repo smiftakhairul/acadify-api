@@ -27,4 +27,6 @@ urlpatterns = [
     path('courses/<int:pk>/update/', views.update_course, name='courses.update'),
     path('courses/<int:pk>/', views.show_course, name='courses.show'),
     path('courses/<int:pk>/delete/', views.delete_course, name='courses.delete'),
+    # enrollment
+    path('enrollments/create/', views.create_enrollment, name='enrollments.create'),
 ]

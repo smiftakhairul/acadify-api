@@ -96,7 +96,7 @@ class EnrollmentSerializer(BaseSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['user'] = UserSerializer(instance.user).data
-        representation['course'] = CourseSerializer(instance.course).data
+        # representation['course'] = CourseSerializer(instance.course).data
         return representation
 
 class CourseSerializer(BaseSerializer):
