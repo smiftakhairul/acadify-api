@@ -300,9 +300,19 @@ def update_course(request, pk):
 @permission_classes([IsAuthenticated])
 def show_course(request, pk):
     try:
+        user = request.user
         course = Course.objects.get(pk=pk)
-        serializer = CourseSerializer(course)
-        return ApiUtils.success_response(data={'course': serializer.data}, message='Course retrieved successfully.')
+        
+        if user.role == 'faculty':
+            if course.user == user:
+                serializer = CourseSerializer(course)
+                return ApiUtils.success_response(data={'course': serializer.data}, message='Course retrieved successfully.')
+        elif user.role == 'student':
+            if Enrollment.objects.filter(course=course, user=user).exists():
+                serializer = CourseSerializer(course)
+                return ApiUtils.success_response(data={'course': serializer.data}, message='Course retrieved successfully.')
+        
+        return ApiUtils.error_response(message='Course not found.', code=status.HTTP_404_NOT_FOUND)
     except:
         return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
