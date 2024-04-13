@@ -284,6 +284,9 @@ def update_course(request, pk):
         if course.user != request.user:
             return ApiUtils.error_response(message='Not authorized.', code=status.HTTP_403_FORBIDDEN)
         
+        if request.data.get('capacity') and int(request.data.get('capacity')) < Enrollment.objects.filter(course=course).count():
+            return ApiUtils.error_response(message='Course capacity can\'t be less than enrollments.')
+        
         data = request.data.copy()
         data.pop('token', None)
         
