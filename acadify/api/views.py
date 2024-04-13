@@ -227,6 +227,39 @@ def delete_comment(request, pk):
     except:
         return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_attachment(request):
+    try:
+        if not request.data.get('model') or not request.data.get('model_id'):
+            return ApiUtils.error_response(message='Model information is required.')
+        
+        model = ContentType.objects.get(model=request.data.get('model'))
+        data = request.data.copy()
+        data['model_type'] = model.pk
+        
+        serializer = AttachmentSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return ApiUtils.success_response(data={'attachment': serializer.data}, message='Attachment created successfully.')
+        
+        return ApiUtils.error_response(message=list(serializer.errors.values())[0][0])
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_attachment(request, pk):
+    try:
+        attachment = Attachment.objects.get(pk=pk)
+        if attachment.user != request.user:
+            return ApiUtils.error_response(message='Not authorized.', code=status.HTTP_403_FORBIDDEN)
+        
+        attachment.delete()
+        return ApiUtils.success_response(message='Attachment deleted successfully.')
+    except:
+        return ApiUtils.error_response(message='Something went wrong.', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_courses(request):

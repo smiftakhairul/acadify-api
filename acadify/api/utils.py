@@ -84,6 +84,12 @@ class UploadUtils:
         name, extension = filename.split('.')
         new_filename = f"{int(timezone.now().timestamp())}.{extension}"
         return f"courses/{new_filename}"
+    
+    @staticmethod
+    def attachment(instance, filename):
+        name, extension = filename.split('.')
+        new_filename = f"{int(timezone.now().timestamp())}.{extension}"
+        return f"attachments/{new_filename}"
 
 def generate_token(size=20):
     characters = string.ascii_lowercase + string.digits + '!@#$%^&*()_+=-'

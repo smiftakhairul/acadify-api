@@ -56,7 +56,7 @@ class Attachment(models.Model):
     model_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     model_id = models.PositiveIntegerField()
     model_object = GenericForeignKey('model_type', 'model_id')
-    attachment = models.CharField(max_length=255)
+    attachment = models.FileField(max_length=255, upload_to=UploadUtils.attachment)
     created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, blank=True, auto_now=True)
 
